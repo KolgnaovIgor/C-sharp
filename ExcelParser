@@ -1,3 +1,6 @@
+//The program collects e-mail addresses from the cells of the excel file and outputs them to the specified 
+//column of the same page in order.
+
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
