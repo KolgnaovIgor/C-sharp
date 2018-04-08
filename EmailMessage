@@ -1,0 +1,262 @@
+//The program sends messages through a non-secure port of user mail with customizable parameters for the frequency of mail distribution.
+
+using System;
+using System.Collections.Generic;
+using System.ComponentModel;
+using System.Data;
+using System.Drawing;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using System.Windows.Forms;
+using System.IO;
+using Microsoft.Office.Interop.Excel;
+using Excel = Microsoft.Office.Interop.Excel;
+using System.Reflection;
+using System.Net.Mail;
+using System.Net;
+using System.Threading;
+
+namespace EmailParser
+{
+    public partial class E_mail_Message : Form
+    {
+       
+        public E_mail_Message()
+        {
+            InitializeComponent();
+        }
+
+        private void button2_StartSendMail(object sender, EventArgs e)
+        {
+            SendMail();
+        }
+        
+        private void textBox1_Login(object sender, EventArgs e)
+        {
+            string lOgin = textBox1.Text;
+        }
+
+        private void E_mail_Message_Load(object sender, EventArgs e)
+        {
+
+        }
+
+        private void textBox3_SMTPHost(object sender, EventArgs e)
+        {
+            string sMTPHost = textBox3.Text;
+        }
+
+        private void textBox2_SMTPPort(object sender, EventArgs e)
+        {
+            string sMTPPort = textBox2.Text;
+        }
+
+        public void SendMail()
+        {
+            string smtpHost = textBox3.Text;
+            int smtpPort = Convert.ToInt32(textBox2.Text);
+            string login = textBox1.Text;
+            string pass = textBox4.Text;
+
+            SmtpClient client = new SmtpClient(smtpHost, smtpPort);
+            client.Credentials = new NetworkCredential(login, pass);
+            
+            string from = textBox5.Text;
+            string [] to = System.IO.File.ReadAllLines(textBox8.Text);
+            string subject = textBox6.Text;
+            string body = textBox7.Text;
+
+            pBar1.Maximum = Convert.ToInt32(to.Length); //ProgressBar код для исполнения данной фукции.
+            DateTime dt2 = DateTime.Now;
+
+            for (int i = 0; i < to.Length; i++)
+            {
+                label10.Text = Convert.ToString(DateTime.Now.Add(new TimeSpan(-DateTime.Now.Hour + DateTime.Now.Hour - dt2.Hour, -DateTime.Now.Minute + DateTime.Now.Minute - dt2.Minute, -DateTime.Now.Second + DateTime.Now.Second - dt2.Second)));
+                label9.Text = Convert.ToString(DateTime.Now.Add(new TimeSpan((((DateTime.Now.Hour - dt2.Hour)/(i + 1)) * (to.Length - i)), (((DateTime.Now.Minute - dt2.Minute)/(i + 1)) * (to.Length - i)), (((DateTime.Now.Second - dt2.Second)/(i + 1)) * (to.Length - i)))));
+
+                if (Convert.ToInt32(i) % Convert.ToInt32(eMailsTime) == 0) { Thread.Sleep(Convert.ToInt32(iNterval) * 60 * 1000); }
+                    
+                pBar1.Value = Convert.ToInt32(i + 1); //ProgressBar код для исполнения данной фукции.
+                System.Threading.Thread.Sleep(Convert.ToInt32(to.Length)); //ProgressBar код для исполнения данной фукции.
+
+                MailMessage mess = new MailMessage(from, to[i], subject, body);
+
+                if (textBox11.Text != "Upload file...")
+                {
+                    Attachment attData1 = new Attachment(@textBox11.Text);
+                    mess.Attachments.Add(attData1);
+                }
+                else { }
+
+                if (textBox12.Text != "Upload file...")
+                {
+                    Attachment attData2 = new Attachment(@textBox12.Text);
+                    mess.Attachments.Add(attData2);
+                }
+                else { }
+
+                if (textBox13.Text != "Upload file...")
+                {
+                    Attachment attData3 = new Attachment(@textBox13.Text);
+                    mess.Attachments.Add(attData3);
+                }
+                else { }
+
+                try
+                {
+                    client.EnableSsl = true;
+                    client.Send(mess);
+                }
+
+                catch (Exception ex)
+                {
+                    MessageBox.Show(ex.Message);
+                }
+            }
+        }
+
+        private void textBox4_Password(object sender, EventArgs e)
+        {
+            string pAssword = textBox4.Text;
+        }
+
+        private void textBox5_From(object sender, EventArgs e)
+        {
+            string fRom = textBox5.Text;
+        }
+
+        private void textBox6_Subject(object sender, EventArgs e)
+        {
+            string sUbject = textBox6.Text;
+        }
+
+        private void textBox8_To(object sender, EventArgs e)
+        {
+            string to = textBox8.Text;
+        }
+
+        private void textBox7_Body(object sender, EventArgs e)
+        {
+            string bOdy = textBox7.Text;
+        }
+
+        int iNterval;
+        private void textBox9_Interval(object sender, EventArgs e)
+        {
+            if (textBox9.Text == "")
+            {
+                iNterval = 0;
+            }
+
+            else
+            {
+                iNterval = Convert.ToInt32(textBox9.Text);
+            }
+        }
+
+        int eMailsTime;
+        public void textBox10_EmailsAtTime(object sender, EventArgs e)
+        {
+            if (textBox10.Text == "")
+            {
+                eMailsTime = 0;
+            }
+
+            else
+            {
+                eMailsTime = Convert.ToInt32(textBox10.Text);
+            }
+        }
+
+        private void button1_ChooseTo(object sender, EventArgs e)
+        {
+            OpenFileDialog open = new OpenFileDialog();
+
+            open.InitialDirectory = "c:\\Рабочий стол";
+            open.Filter = "Files .txt|*.txt";
+            open.FilterIndex = 2;
+            open.RestoreDirectory = true;
+
+            if (open.ShowDialog() == DialogResult.OK)
+            {
+                textBox8.Text = open.FileName;
+            }
+        }
+
+        private void button2_ChooseBody(object sender, EventArgs e)
+        {
+            OpenFileDialog open = new OpenFileDialog();
+
+            open.InitialDirectory = "c:\\Рабочий стол";
+            open.Filter = "Files .txt|*.txt;*.docx";
+            open.FilterIndex = 2;
+            open.RestoreDirectory = true;
+
+            if (open.ShowDialog() == DialogResult.OK)
+            {
+                textBox7.Text = System.IO.File.ReadAllText(open.FileName, Encoding.GetEncoding(1251));
+            }
+        }
+
+        private void button3_CooseFile(object sender, EventArgs e)
+        {
+            OpenFileDialog open = new OpenFileDialog();
+
+            open.InitialDirectory = "c:\\Рабочий стол";
+            open.Filter = "Files all|*.xlsx;*.xls;*.docx;*.pdf;*.rar;*.txt";
+            open.FilterIndex = 2;
+            open.RestoreDirectory = true;
+
+            if (open.ShowDialog() == DialogResult.OK)
+            {
+                textBox11.Text = open.FileName;
+            }
+        }
+
+        private void textBox11_UploadFile(object sender, EventArgs e)
+        {
+            string uPloadFile = textBox11.Text;
+        }
+
+        private void textBox12_UploadFile(object sender, EventArgs e)
+        {
+            string uPloadFile = textBox12.Text;
+        }
+
+        private void textBox13_UploadFile(object sender, EventArgs e)
+        {
+            string uPloadFile = textBox13.Text;
+        }
+
+        private void button4_CooseFile(object sender, EventArgs e)
+        {
+            OpenFileDialog open = new OpenFileDialog();
+
+            open.InitialDirectory = "c:\\Рабочий стол";
+            open.Filter = "Files all|*.xlsx;*.xls;*.docx;*.pdf;*.rar;*.txt";
+            open.FilterIndex = 2;
+            open.RestoreDirectory = true;
+
+            if (open.ShowDialog() == DialogResult.OK)
+            {
+                textBox12.Text = open.FileName;
+            }
+        }
+
+        private void button5_CooseFile(object sender, EventArgs e)
+        {
+            OpenFileDialog open = new OpenFileDialog();
+
+            open.InitialDirectory = "c:\\Рабочий стол";
+            open.Filter = "Files all|*.xlsx;*.xls;*.docx;*.pdf;*.rar;*.txt";
+            open.FilterIndex = 2;
+            open.RestoreDirectory = true;
+
+            if (open.ShowDialog() == DialogResult.OK)
+            {
+                textBox13.Text = open.FileName;
+            }
+        }
+    }
+}
