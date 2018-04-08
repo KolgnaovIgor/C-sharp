@@ -1,1 +1,791 @@
+using System;
+using System.Collections.Generic;
+using System.ComponentModel;
+using System.Data;
+using System.Drawing;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using System.Windows.Forms;
+using System.Web;
+using HtmlAgilityPack;
+using System.Text.RegularExpressions;
+using Microsoft.Office.Interop.Excel;
+using _Excel = Microsoft.Office.Interop.Excel;
+using System.Threading;
 
+namespace EmailParser
+{
+    public partial class _2GisParser : Form
+    {        
+        private Microsoft.Office.Interop.Excel.Worksheet excelworksheet; //Определяем глобально основной обьект 'Excel.Worksheet'.
+        private Microsoft.Office.Interop.Excel.Range excelcells; //Определяем глобально основной обьект 'Excel.Range'.
+
+        MatchCollection matchesCity;
+        int v;
+        //Thread parsingComP; //Создание потока.
+
+        public _2GisParser()
+        {
+            InitializeComponent();
+        }
+
+        private void _2GisParser_Load(object sender, EventArgs e)
+        {
+
+        }
+
+        private void Parsing_Click(object sender, EventArgs e)
+        {
+            if (comboBox1.Text == "Excel")
+            {
+                try
+                {
+                    _Excel.Application exApp = new _Excel.Application(); //Создаем новый обьект файла Excel.
+                    exApp.Visible = true; //Делаем так чтобы мы видели созданный новый обьект файла Excel. (Можно не писать данную строку - тогда все выполнение программы и ее результаты будет скрыто от глаз.)
+                    exApp.Workbooks.Add(); //Создаем новую одну рабочую книгу.
+                    exApp.ActiveWindow.Zoom = 75;
+                    excelworksheet = (Worksheet)exApp.ActiveSheet; //Получаем активный лист в который будем заносить значения.
+                    excelworksheet.Columns.ColumnWidth = 25;
+
+                    //ВЫВОД ЗАГЛАВИЙ КОЛОНОК ДЛЯ ВЫВОДА ДАННЫХ ПРИ ПАРСЕНГЕ САЙТА 2gis.ru
+                    excelcells = excelworksheet.get_Range("A1", "A1"); //Выделяю диапазон ячеек в которые буду заносить значения в данном случае это одна ячека А1.
+                    excelcells.Value2 = "Name of the company"; //Присваиваю выделенному ранее диапазону ячеек значение типа string в данном случае это Name of the company.
+                    excelcells = excelworksheet.get_Range("B1", "B1"); //Выделяю диапазон ячеек в которые буду заносить значения в данном случае это одна ячека B1.
+                    excelcells.Value2 = "Address"; //Присваиваю выделенному ранее диапазону ячеек значение типа string в данном случае это Address.
+                    excelcells = excelworksheet.get_Range("C1", "C1"); //Выделяю диапазон ячеек в которые буду заносить значения в данном случае это одна ячека C1.
+                    excelcells.Value2 = "Phone"; //Присваиваю выделенному ранее диапазону ячеек значение типа string в данном случае это Phone.
+                    excelcells = excelworksheet.get_Range("D1", "D1"); //Выделяю диапазон ячеек в которые буду заносить значения в данном случае это одна ячека D1.
+                    excelcells.Value2 = "E-mail"; //Присваиваю выделенному ранее диапазону ячеек значение типа string в данном случае это E-mail.
+                    excelcells = excelworksheet.get_Range("E1", "E1"); //Выделяю диапазон ячеек в которые буду заносить значения в данном случае это одна ячека E1.
+                    excelcells.Value2 = "City"; //Присваиваю выделенному ранее диапазону ячеек значение типа string в данном случае это City.
+                    excelcells = excelworksheet.get_Range("F1", "F1"); //Выделяю диапазон ячеек в которые буду заносить значения в данном случае это одна ячека F1.
+                    excelcells.Value2 = "Activities"; //Присваиваю выделенному ранее диапазону ячеек значение типа string в данном случае это City.
+                    excelcells = excelworksheet.get_Range("G1", "G1"); //Выделяю диапазон ячеек в которые буду заносить значения в данном случае это одна ячека G1.
+                    excelcells.Value2 = "Site"; //Присваиваю выделенному ранее диапазону ячеек значение типа string в данном случае это Site.
+
+                    //ВЫВОД ЗАГЛАВИЙ КОЛОНОК ДЛЯ ВЫВОДА ДАННЫХ ПРИ ПАРСЕНГЕ САЙТОВ НАЙДЕННЫХ ПРИ ПАРСЕНГЕ САЙТА 2gis.ru
+                    excelcells = excelworksheet.get_Range("I1", "I1"); //Выделяю диапазон ячеек в которые буду заносить значения в данном случае это одна ячека I1.
+                    excelcells.Value2 = "Name of the company"; //Присваиваю выделенному ранее диапазону ячеек значение типа string в данном случае это Name of the company.
+                    excelcells = excelworksheet.get_Range("J1", "J1"); //Выделяю диапазон ячеек в которые буду заносить значения в данном случае это одна ячека J1.
+                    excelcells.Value2 = "Address"; //Присваиваю выделенному ранее диапазону ячеек значение типа string в данном случае это Address.
+                    excelcells = excelworksheet.get_Range("K1", "K1"); //Выделяю диапазон ячеек в которые буду заносить значения в данном случае это одна ячека K1.
+                    excelcells.Value2 = "Phone"; //Присваиваю выделенному ранее диапазону ячеек значение типа string в данном случае это Phone.
+                    excelcells = excelworksheet.get_Range("L1", "L1"); //Выделяю диапазон ячеек в которые буду заносить значения в данном случае это одна ячека L1.
+                    excelcells.Value2 = "E-mail"; //Присваиваю выделенному ранее диапазону ячеек значение типа string в данном случае это E-mail.
+                    excelcells = excelworksheet.get_Range("M1", "M1"); //Выделяю диапазон ячеек в которые буду заносить значения в данном случае это одна ячека M1.
+                    excelcells.Value2 = "City"; //Присваиваю выделенному ранее диапазону ячеек значение типа string в данном случае это City.
+                    excelcells = excelworksheet.get_Range("N1", "N1"); //Выделяю диапазон ячеек в которые буду заносить значения в данном случае это одна ячека N1.
+                    excelcells.Value2 = "Activities"; //Присваиваю выделенному ранее диапазону ячеек значение типа string в данном случае это City.
+                    excelcells = excelworksheet.get_Range("O1", "O1"); //Выделяю диапазон ячеек в которые буду заносить значения в данном случае это одна ячека O1.
+                    excelcells.Value2 = "Site"; //Присваиваю выделенному ранее диапазону ячеек значение типа string в данном случае это Site.
+
+
+                    //Код перебора страниц сайта по номерам страниц с первой по последнюю.
+                    string cityProduct; //Обьявление переменной типа string в которую будут заносится значения страницы.
+                    int l = 0; //Определение переменной типа integer для того чтобы занося в нее значения перебигать по строкам и выводить новые значения с новой строки.
+
+                    //Нижние две строки кода позволяют при определении введен ли город или нет в поле textBox1.Text выбрать либо один введенный город и перебрать только его, либо перебрать все города при не введении ничего.
+                    Regex newRegCity = new Regex(@"([a-z]{3,20})");
+                    matchesCity = newRegCity.Matches(enumerationOfOption());
+
+                    pBar1.Maximum = textBox4_NumberOfPages(); //ProgressBar код для исполнения данной фукции.
+                    pBar2.Maximum = matchesCity.Count; //ProgressBar код для исполнения данной фукции.
+
+                    DateTime dt1 = DateTime.Now; //Создаю переменную dt1 типа DataTime.
+
+                    for (v = 0; v < matchesCity.Count; v++)
+                    {
+                        pBar2.Value = v + 1; //ProgressBar код для исполнения данной фукции.
+                        System.Threading.Thread.Sleep(matchesCity.Count); //ProgressBar код для исполнения данной фукции.
+
+                        int text4numPages = textBox4_NumberOfPages();
+                        for (int k = 0; k < text4numPages; k++) //Создание цикла перебора страниц.
+                        {
+
+                            pBar1.Value = k + 1; //ProgressBar код для исполнения данной фукции.
+                            System.Threading.Thread.Sleep(textBox4_NumberOfPages()); //ProgressBar код для исполнения данной фукции.
+
+                            try
+                            {
+                                cityProduct = "https://2gis.ru/" + matchesCity[v].Value + "/search/" + textBox2.Text + "/page/" + Convert.ToString(k + 1) + "/tab/firms";
+
+                                //Код парсит с учетом данных страницы cityPtoduct все номера компаний и вносит их в переменную numCompany для дальнейшено парсинга.
+                                System.Net.WebClient wc = new System.Net.WebClient(); //Запускаем встроенный браузер для открытия Web странцы.
+                                //string numCompany; //Создаю переменную типа string в которую буду вносить номера компаний на сайте парсинга страницы.
+                                Regex newRegNumb = new Regex(@"[0-9]{16,20}");
+                                String Responcec = wc.DownloadString(Convert.ToString(cityProduct));
+                                MatchCollection matchess = newRegNumb.Matches(Responcec);
+
+                                //Код парсинга страницы на поиск данных компаний и вывода их в указанное место.
+                                for (int j = 0; j < textBox3_NumberOfCompanies(); j++) //Цикл перебора номеров компаний в выбранном диапазоне данных.
+                                {
+                                    label1.Text = Convert.ToString(DateTime.Now.Add(new TimeSpan(-DateTime.Now.Hour + DateTime.Now.Hour - dt1.Hour, -DateTime.Now.Minute + DateTime.Now.Minute - dt1.Minute, -DateTime.Now.Second + DateTime.Now.Second - dt1.Second)))/*(DateTime.Now - dt1)*/; //Заношу в label1 значение времени сейчас минус время от старта программы.
+                                    label2.Text = Convert.ToString(DateTime.Now.Add(new TimeSpan((((DateTime.Now.Hour - dt1.Hour)/(j + 1)) * (text4numPages - k) * (matchesCity.Count - v)), (((DateTime.Now.Minute - dt1.Minute)/(j + 1)) * (text4numPages - k) * (matchesCity.Count - v)), (((DateTime.Now.Second - dt1.Second)/(j + 1)) * (text4numPages - k) * (matchesCity.Count - v))))); //Строка которая выводит время до завершения в lavel на Windows Form.
+
+                                    try
+                                    {
+                                        String Responce = wc.DownloadString("https://2gis.ru/" + matchesCity[v].Value + "/firm/" + matchess[j].Value); //Загружаем в оперативную память программы текст html со страницы выбранной методом cityProduct().
+
+                                        //@"(\w+@[a-zA-Z0-9\-]+?\.[a-zA-Z]{2,6})"
+                                        Regex newReg = new Regex(@"([a-zA-Z0-9\-\.\w]+@[a-zA-Z0-9\-\.]+?\.[a-zA-Z]{2,6})"); //Создание переменной ссылочного типа данных с занесением в него Регулярного выражения по которому будет осуществлятся поиск искомого значения.
+
+                                        //Дэкодирование полученных данных со страницы Html из кодировки UTF-8 в ту которая будет распознавать Кириллицу при выводе.
+                                        //Responce = Encoding.GetEncoding(1252).GetString(Encoding.Convert(Encoding.UTF8, Encoding.GetEncoding(1252), Encoding.UTF8.GetBytes(Responce))); //Convert from UTF-8 to 1252
+                                        Responce = Encoding.UTF8.GetString(Encoding.GetEncoding(1251).GetBytes(Responce)); //Re interpret windows-1251 in proper UTF-8 encoding.
+
+                                        //Код парсинга страницы на совпадения электронный адресов и вывода его в указанное место. - продолжение.
+                                        //Необходимо применить в данном коде приведеном ниже метод перебора похожих значений и работать только с уникальными значениями отсеивая повторяющиеся.
+                                        MatchCollection matches = newReg.Matches(Responce); //Создание переменной ссылочного типа данных с занесением в нее результатов отбора согласно установленному ранее Регулярному выражению.
+
+                                        for (int i = 0; i < (int)matches.Count; i++) //Создание кода перебора всех вариантов с подсчетом общего их количества.
+                                        {
+                                            if (matches[i].Value + "\n" != excelcells[l + 2, -10].Value)
+                                            {
+                                                excelcells[l + 2, -10] = excelcells[l + 2, -10].Value + matches[i].Value + "\n"; //Занесение полученных результатов парсинга по Регулярному выражению с занесением их последовательно в стоблец файла Excel. С учетом если ячейка уже имеет какойлибо отобраное знаяение то просто добавляется к нему с новой строки.
+                                            }
+                                            else { }
+                                        }
+
+                                        //Код парсинга страницы на совпадения телефонных номеров и вывода их в указанное место.
+                                        //Необходимо применить в данном коде приведеном ниже метод перебора похожих значений и работать только с уникальными значениями отсеивая повторяющиеся.
+                                        Regex newRegP = new Regex(@"(contact__phonesItemLinkNumber"">)(.*?)(</bdo>)"); //Создание переменной ссылочного типа данных с занесением в него Регулярного выражения по которому будет осуществлятся поиск искомого значения. Разделение круглыми скобками полученные значения на группы Регулярного выражения.
+                                        MatchCollection matchesP = newRegP.Matches(Responce); //Создание переменной ссылочного типа данных с занесением в нее результатов отбора согласно установленному ранее Регулярному выражению.
+
+                                        for (int i = 0; i < (int)matchesP.Count; i++) //Создание кода перебора всех вариантов с подсчетом общего их количества.
+                                        {
+                                            if (matchesP[i].Groups[2].Length > 14) //Проверка на наличие не полных телефонных номеров и пропуск в записи их в таблицу данных.
+                                                excelcells[l + 2, -11] = excelcells[l + 2, -11].Value + matchesP[i].Groups[2].Value + "\n"; //Занесение полученных результатов парсинга по Регулярному выражению с занесением их последовательно в стоблец файла Excel. Занесение только значене номера группы только той которая указана в Groups[2].
+                                            else { }
+                                        }
+
+                                        //Код парсинга страницы на совпадения наименований компаний и вывода их в указанное место.
+                                        Regex newRegN = new Regex(@"(<title>)(.*?)(</title>)"); //Создание переменной ссылочного типа данных с занесением в него Регулярного выражения по которому будет осуществлятся поиск искомого значения. Разделение круглыми скобками полученные значения на группы Регулярного выражения.
+                                        MatchCollection matchesN = newRegN.Matches(Responce); //Создание переменной ссылочного типа данных с занесением в нее результатов отбора согласно установленному ранее Регулярному выражению.
+
+                                        for (int i = 0; i < (int)matchesN.Count; i++) //Создание кода перебора всех вариантов с подсчетом общего их количества.
+                                        {
+                                            string regN = matchesN[i].Groups[2].Value; //Создание переменной в методе перебора с передачей ей отобранного значения со страницы html по Регулярному выражению переменной newRegN.
+                                            Match N = Regex.Match(regN, @"(.*?),\s(.*?),\s(.*?),\s(.*?),\s(.*?)"); //Создание переменной N с перевобом полученного строкового значения при отборе со страницы html и разделением значения на группы для удобново вывода нужного параметра.
+                                            if (N.Groups[2].Value.Equals("ООО") || N.Groups[2].Value.Equals("ЗАО") || N.Groups[2].Value.Equals("ФКУ") || N.Groups[2].Value.Equals("ОАО") || N.Groups[2].Value.Equals("АО") || N.Groups[2].Value.Equals("ИП")) //Проверка наличи большего количества значений для правильного внесения в яцейки данных.
+                                            {
+                                                Match N1 = Regex.Match(regN, @"(.*?,\s.*?),\s(.*?),\s(.*?,\s.*?),\s(.*?)");
+                                                excelcells[l + 2, -13] = excelcells[l + 2, -13].Value + N1.Groups[1].Value + "\n"; //Занесение полученных результатов парсинга по Регулярному выражению с занесением их последовательно в стоблец файла Excel. Занесение только значене номера группы только той которая указана в Groups[2].
+                                            }
+                                            else
+                                            { 
+                                                excelcells[l + 2, -13] = excelcells[l + 2, -13].Value + N.Groups[1].Value + "\n"; //Занесение полученных результатов парсинга по Регулярному выражению с занесением их последовательно в стоблец файла Excel. Занесение только значене номера группы только той которая указана в Groups[2].
+                                            }
+                                            
+                                        }
+
+                                        //Код парсинга страницы на совпадения адресов компаний и вывода их в указанное место.
+                                        Regex newRegA = new Regex(@"(<title>)(.*?)(</title>)"); //Создание переменной ссылочного типа данных с занесением в него Регулярного выражения по которому будет осуществлятся поиск искомого значения. Разделение круглыми скобками полученные значения на группы Регулярного выражения.
+                                        MatchCollection matchesA = newRegA.Matches(Responce); //Создание переменной ссылочного типа данных с занесением в нее результатов отбора согласно установленному ранее Регулярному выражению.
+
+                                        for (int i = 0; i < (int)matchesA.Count; i++) //Создание кода перебора всех вариантов с подсчетом общего их количества.
+                                        {
+                                            string regA = matchesA[i].Groups[2].Value;
+                                            Match A = Regex.Match(regA, @"(.*?),\s(.*?),\s(.*?,\s.*?),\s(.*?)");
+                                            if (A.Groups[2].Value.Equals("ООО") || A.Groups[2].Value.Equals("ЗАО") || A.Groups[2].Value.Equals("ФКУ") || A.Groups[2].Value.Equals("ОАО") || A.Groups[2].Value.Equals("АО") || A.Groups[2].Value.Equals("ИП")) //Проверка наличи большего количества значений для правильного внесения в яцейки данных.
+                                            {
+                                                Match A1 = Regex.Match(regA, @"(.*?,\s.*?),\s(.*?),\s(.*?,\s.*?),\s(.*?)");
+                                                excelcells[l + 2, -12] = excelcells[l + 2, -12].Value + A1.Groups[3].Value + "\n"; //Занесение полученных результатов парсинга по Регулярному выражению с занесением их последовательно в стоблец файла Excel. Занесение только значене номера группы только той которая указана в Groups[2].
+                                            }
+                                            else
+                                            { 
+                                                excelcells[l + 2, -12] = excelcells[l + 2, -12].Value + A.Groups[3].Value + "\n"; //Занесение полученных результатов парсинга по Регулярному выражению с занесением их последовательно в стоблец файла Excel. Занесение только значене номера группы только той которая указана в Groups[2].
+                                            }
+                                                
+                                        }
+
+                                        //Код парсинга страницы на совпадения города расположения компаний и вывода их в указанное место.
+                                        Regex newRegC = new Regex(@"(<title>)(.*?)(</title>)"); //Создание переменной ссылочного типа данных с занесением в него Регулярного выражения по которому будет осуществлятся поиск искомого значения. Разделение круглыми скобками полученные значения на группы Регулярного выражения.
+                                        MatchCollection matchesC = newRegC.Matches(Responce); //Создание переменной ссылочного типа данных с занесением в нее результатов отбора согласно установленному ранее Регулярному выражению.
+
+                                        for (int i = 0; i < (int)matchesC.Count; i++) //Создание кода перебора всех вариантов с подсчетом общего их количества.
+                                        {
+                                            string regC = matchesC[i].Groups[2].Value;
+                                            Match C = Regex.Match(regC, @"(.*?),\s(.*?),\s(.*?),\s(.*?),\s(.*?)\s(.*?)");
+                                            if (C.Groups[2].Value.Equals("ООО") || C.Groups[2].Value.Equals("ЗАО") || C.Groups[2].Value.Equals("ФКУ") || C.Groups[2].Value.Equals("ОАО") || C.Groups[2].Value.Equals("АО") || C.Groups[2].Value.Equals("ИП")) //Проверка наличи большего количества значений для правильного внесения в яцейки данных.
+                                            {
+                                                Match C1 = Regex.Match(regC, @"(.*?,\s.*?),\s(.*?),\s(.*?,\s.*?),\s(.*?)\s(.*?)");
+                                                excelcells[l + 2, -9] = excelcells[l + 2, -9].Value + C1.Groups[4].Value + "\n"; //Занесение полученных результатов парсинга по Регулярному выражению с занесением их последовательно в стоблец файла Excel. Занесение только значене номера группы только той которая указана в Groups[2].
+                                            }
+                                            else
+                                            { 
+                                                excelcells[l + 2, -9] = excelcells[l + 2, -9].Value + C.Groups[5].Value + "\n"; //Занесение полученных результатов парсинга по Регулярному выражению с занесением их последовательно в стоблец файла Excel. Занесение только значене номера группы только той которая указана в Groups[2].
+                                            }
+                                                
+                                        }
+
+                                        //Код парсинга страницы на совпадения деятельности компаний и вывода их в указанное место.
+                                        Regex newRegAc = new Regex(@"(<title>)(.*?)(</title>)"); //Создание переменной ссылочного типа данных с занесением в него Регулярного выражения по которому будет осуществлятся поиск искомого значения. Разделение круглыми скобками полученные значения на группы Регулярного выражения.
+                                        MatchCollection matchesAc = newRegAc.Matches(Responce); //Создание переменной ссылочного типа данных с занесением в нее результатов отбора согласно установленному ранее Регулярному выражению.
+
+                                        for (int i = 0; i < (int)matchesAc.Count; i++) //Создание кода перебора всех вариантов с подсчетом общего их количества.
+                                        {
+                                            string regAc = matchesAc[i].Groups[2].Value;
+                                            Match Ac = Regex.Match(regAc, @"(.*?),\s(.*?),\s(.*?),\s(.*?),\s(.*?)");
+
+                                            if (Ac.Groups[2].Value.Equals("ООО") || Ac.Groups[2].Value.Equals("ЗАО") || Ac.Groups[2].Value.Equals("ФКУ") || Ac.Groups[2].Value.Equals("ОАО") || Ac.Groups[2].Value.Equals("АО") || Ac.Groups[2].Value.Equals("ИП")) //Проверка наличи большего количества значений для правильного внесения в яцейки данных.
+                                            {
+                                                Match Ac1 = Regex.Match(regAc, @"(.*?,\s.*?),\s(.*?),\s(.*?,\s.*?),\s(.*?)");
+                                                excelcells[l + 2, -8] = excelcells[l + 2, -8].Value + Ac1.Groups[2].Value + "\n"; //Занесение полученных результатов парсинга по Регулярному выражению с занесением их последовательно в стоблец файла Excel. Занесение только значене номера группы только той которая указана в Groups[2].
+                                            }
+                                            else
+                                            { 
+                                                excelcells[l + 2, -8] = excelcells[l + 2, -8].Value + Ac.Groups[2].Value + "\n"; //Занесение полученных результатов парсинга по Регулярному выражению с занесением их последовательно в стоблец файла Excel. Занесение только значене номера группы только той которая указана в Groups[2].
+                                            }
+                                            
+                                        }
+
+                                        //Код парсинга страницы на совпадения сайта компаний и вывода их в указанное место.
+                                        //Необходимо применить в данном коде приведеном ниже метод перебора похожих значений и работать только с уникальными значениями отсеивая повторяющиеся.
+                                        Regex newRegSi = new Regex(@"(www\.[a-zA-Z0-9\-]+?\.[a-zA-Z]{2,6})"); //Создание переменной ссылочного типа данных с занесением в него Регулярного выражения по которому будет осуществлятся поиск искомого значения. Разделение круглыми скобками полученные значения на группы Регулярного выражения.
+                                        MatchCollection matchesSi = newRegSi.Matches(Responce); //Создание переменной ссылочного типа данных с занесением в нее результатов отбора согласно установленному ранее Регулярному выражению.
+                                        int sit = 1;
+                                        for (int n = 0; n < (int)matchesSi.Count; n++)
+                                        {
+                                            if (n != (int)matchesSi.Count - 2)
+                                            {
+                                                for (int si = sit; si < (int)matchesSi.Count; si++)
+                                                {
+                                                    if (matchesSi[n].Value != "www.google-analytics.com") //Операция отсеивания адресов сайта www.google-analytics.com.
+                                                    {
+                                                        if (matchesSi[n].Value != "www.openstreetmap.org") //Операция отсеивания адресов сайта www.openstreetmap.org.
+                                                        {
+                                                            if (matchesSi[n].Value == matchesSi[si].Value)
+                                                            {
+                                                                break;
+                                                            }
+
+                                                            else
+                                                            {
+                                                                if (si == (int)matchesSi.Count - 1)
+                                                                {
+                                                                    excelcells[l + 2, -7] = excelcells[l + 2, -7].Value + matchesSi[n].Value + "\n";
+                                                                }
+                                                                else { }
+                                                            }
+                                                        }
+                                                        else { }
+                                                    }
+                                                    else { }
+                                                } sit++;
+                                            }
+
+                                            else
+                                            {
+                                                if (matchesSi[n].Value != "www.google-analytics.com")
+                                                {
+                                                    if (matchesSi[n].Value != "www.openstreetmap.org")
+                                                    {
+                                                        for (int site = (int)matchesSi.Count - 1; site < (int)matchesSi.Count; site++)
+                                                        {
+                                                            if (matchesSi[n].Value == matchesSi[site].Value)
+                                                            {
+                                                                excelcells[l + 2, -7] = excelcells[l + 2, -7].Value + matchesSi[n].Value + "\n";
+                                                                break;
+                                                            }
+
+                                                            else
+                                                            {
+                                                                for (int sites = (int)matchesSi.Count - 2; sites < (int)matchesSi.Count; sites++)
+                                                                {
+                                                                    excelcells[l + 2, -7] = excelcells[l + 2, -7].Value + matchesSi[sites].Value + "\n";
+                                                                }
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        } l++; //Увеличение переменной на единицу для того чтобы не вносить значения в уже заполненную строку и начинать все с новой.
+
+                                        //КОД ПАРСИНГА ПОЛУЧЕННЫХ САЙТОВ ПРИ ПАРСЕНГЕ СЕРВИСА 2gis.ru ПОЛУЧАЕМЫХ С ЯЧЕЙКИ ТАБЛИЦЫ EXCELE
+                                        //Необходимо применить в данном коде приведеном ниже метод перебора похожих значений и работать только с уникальными значениями отсеивая повторяющиеся.
+
+                                        Regex newRegSis = new Regex(@"(www\.[a-zA-Z0-9\-]+?\.[a-zA-Z]{2,6})"); //Создаем переменную для отбора string значений электронных адресов.
+                                        MatchCollection matchesSis = newRegSis.Matches(excelcells[l + 1, -7].Value); //Отбираем с ячейки таблицы excele электронные адреса поочередно.
+
+                                        for (int i = 0; i < (int)matchesSis.Count; i++)
+                                        {
+                                            try
+                                            {
+                                                System.Net.WebClient wl = new System.Net.WebClient();
+                                                String ResponceCe = wl.DownloadString("http://" + matchesSis[i].Value);
+
+                                                //Код парсинга электронных адресов.
+                                                Regex newRegEm = new Regex(@"([a-zA-Z0-9\-\.\w]+@[a-zA-Z0-9\-\.]+?\.[a-zA-Z]{2,6})");
+                                                ResponceCe = Encoding.UTF8.GetString(Encoding.GetEncoding(1251).GetBytes(ResponceCe));
+                                                MatchCollection matchesEm = newRegEm.Matches(ResponceCe);
+
+                                                int eda = 1;
+                                                for (int n = 0; n < (int)matchesEm.Count; n++)
+                                                {
+                                                    if (n != (int)matchesEm.Count - 2)
+                                                    {
+                                                        for (int m = eda; m < (int)matchesEm.Count; m++)
+                                                        {
+                                                            if (matchesEm[n].Value == matchesEm[m].Value)
+                                                            {
+                                                                break;
+                                                            }
+
+                                                            else
+                                                            {
+                                                                if (m == (int)matchesEm.Count - 1)
+                                                                {
+                                                                    excelcells[l + 1, -2] = excelcells[l + 1, -2].Value + matchesEm[n].Value + "\n";
+                                                                }
+                                                                else { }
+                                                            }
+                                                        } eda++;
+                                                    }
+
+                                                    else
+                                                    {
+                                                        for (int edai = (int)matchesEm.Count - 1; edai < (int)matchesEm.Count; edai++)
+                                                        {
+                                                            if (matchesEm[n].Value == matchesEm[edai].Value)
+                                                            {
+                                                                excelcells[l + 1, -2] = excelcells[l + 1, -2].Value + matchesEm[edai].Value + "\n";
+                                                                break;
+                                                            }
+
+                                                            else
+                                                            {
+                                                                for (int edamh = (int)matchesEm.Count - 2; edamh < (int)matchesEm.Count; edamh++)
+                                                                {
+                                                                    excelcells[l + 1, -2] = excelcells[l + 1, -2].Value + matchesEm[edamh].Value + "\n";
+                                                                }
+                                                            }
+                                                        }
+                                                    }
+                                                }
+
+                                                //Код парсинга телефонных номеров №1.
+                                                Regex newRegPhoneS = new Regex(@"((\+[0-9]{1}|8)\s\([0-9]{3,5}\)\s[0-9]{1,3}\s([0-9]{2,3}\s[0-9]{2,3}|[0-9]{3,6}))");
+                                                //Regex newRegPhoneS = new Regex(@"^((8|\+7)[\-]?)?(\(?\d{3}\)?[\-]?)?[\d\-]{7,10}$");
+                                                ResponceCe = Encoding.GetEncoding(1251).GetString(Encoding.Convert(Encoding.UTF8, Encoding.GetEncoding(1251), Encoding.UTF8.GetBytes(ResponceCe)));
+                                                MatchCollection matchesPhoneS = newRegPhoneS.Matches(ResponceCe);
+
+                                                //Код вывода оригинальных значений полученных парсингом сайта. Работает не совсем корректно, потому что последнее значение не будет првильно сравнено и всегда будет выкинуто из перечисления даже если оно уникально.
+                                                int pl = 1; //Определяем переменную тимпа int и присваиваем ей значение 1 для того чтобы сравнивать не первое значение одного массива с первым другого (в данных массивах значения одинаковые). А сравнивать первое значение одного массива со вторым второго и дальше с третьим второго и так далее.
+                                                for (int n = 0; n < (int)matchesPhoneS.Count; n++) //Перебираем первый массив.
+                                                {
+                                                    if (n != (int)matchesPhoneS.Count - 2) //Если значение первого массива предпоследнее то мы идем в другой код(если предпоследнее значение равно последнему то оно уникально один раз и мы его не сможем вывести реализуя следующий код и так же если предпоследнее значение не равно последнему мы тоже не сможет вывести два оригинальных значения).
+                                                    {
+                                                        for (int m = pl; m < (int)matchesPhoneS.Count; m++) //Перебираем второй массив.
+                                                        {
+                                                            if (matchesPhoneS[n].Value == matchesPhoneS[m].Value) //Есил значения в массивах находят свое совпадения то происходит прерывание метода перебора.
+                                                            {
+                                                                break;
+                                                            }
+
+                                                            else
+                                                            {
+                                                                if (m == (int)matchesPhoneS.Count - 1) //Код для того чтобы вывести значение нужно сначала прогнать его по всему вротому массиву и уже когда мы сравним последнее и не найдем соответствий то выводим в таблицу.
+                                                                {
+                                                                    excelcells[l + 1, -3] = excelcells[l + 1, -3].Value + matchesPhoneS[n].Value + "\n";
+                                                                }
+                                                                else { }
+                                                            }
+
+
+                                                        } pl++;
+                                                    }
+
+                                                    else //Данный код проверяет на уникальность последнего и предпоследнего значения.
+                                                    {
+                                                        for (int ml = (int)matchesPhoneS.Count - 1; ml < (int)matchesPhoneS.Count; ml++) //Код перебора предпоследнего и последнего значения.
+                                                        {
+                                                            if (matchesPhoneS[n].Value == matchesPhoneS[ml].Value) //Если предпосленее значение равно последнему то мы заносим предпоследнее и прерываем данный цикл for.
+                                                            {
+                                                                excelcells[l + 1, -3] = excelcells[l + 1, -3].Value + matchesPhoneS[n].Value + "\n";
+                                                                break;
+                                                            }
+
+                                                            else
+                                                            {
+                                                                for (int mh = (int)matchesPhoneS.Count - 2; mh < (int)matchesPhoneS.Count; mh++) //Код внесения последнего и предпоследнего значений в таблицу когда они оба уникальны.
+                                                                {
+                                                                    excelcells[l + 1, -3] = excelcells[l + 1, -3].Value + matchesPhoneS[mh].Value + "\n";
+                                                                }
+                                                            }
+                                                        }
+                                                    }
+                                                }
+
+                                                //Код парсинга телефонных номеров №2
+                                                Regex newRegPhoneSe = new Regex(@"((\+[0-9]{1})[0-9]{10})");
+                                                //Regex newRegPhoneS = new Regex(@"^((8|\+7)[\-]?)?(\(?\d{3}\)?[\-]?)?[\d\-]{7,10}$");
+                                                ResponceCe = Encoding.GetEncoding(1251).GetString(Encoding.Convert(Encoding.UTF8, Encoding.GetEncoding(1251), Encoding.UTF8.GetBytes(ResponceCe)));
+                                                MatchCollection matchesPhoneSe = newRegPhoneSe.Matches(ResponceCe);
+
+                                                //Код вывода оригинальных значений полученных парсингом сайта. Работает не совсем корректно, потому что последнее значение не будет првильно сравнено и всегда будет выкинуто из перечисления даже если оно уникально.
+                                                int p = 1;
+                                                for (int n = 0; n < (int)matchesPhoneSe.Count; n++)
+                                                {
+                                                    if (n != (int)matchesPhoneSe.Count - 2)
+                                                    {
+                                                        for (int z = p; z < (int)matchesPhoneSe.Count; z++)
+                                                        {
+                                                            if (matchesPhoneSe[n].Value == matchesPhoneSe[z].Value)
+                                                            {
+                                                                break;
+                                                            }
+
+                                                            else
+                                                            {
+                                                                if (z == (int)matchesPhoneSe.Count - 1)
+                                                                {
+                                                                    excelcells[l + 1, -3] = excelcells[l + 1, -3].Value + matchesPhoneSe[n].Value + "\n";
+                                                                }
+                                                                else { }
+                                                            }
+
+
+                                                        } p++;
+                                                    }
+
+                                                    else
+                                                    {
+                                                        for (int kl = (int)matchesPhoneSe.Count - 1; kl < (int)matchesPhoneSe.Count; kl++)
+                                                        {
+                                                            if (matchesPhoneSe[n].Value == matchesPhoneSe[kl].Value)
+                                                            {
+                                                                excelcells[l + 1, -3] = excelcells[l + 1, -3].Value + matchesPhoneSe[n].Value + "\n";
+                                                                break;
+                                                            }
+
+                                                            else
+                                                            {
+                                                                for (int klk = (int)matchesPhoneSe.Count - 2; klk < (int)matchesPhoneSe.Count; klk++)
+                                                                {
+                                                                    excelcells[l + 1, -3] = excelcells[l + 1, -3].Value + matchesPhoneSe[klk].Value + "\n";
+                                                                }
+                                                            }
+                                                        }
+                                                    }
+                                                }
+
+                                                //Код парсинга телефонных номеров №3
+                                                Regex newRegPhoneSes = new Regex(@"(8\-[0-9]{3,5}\-[0-9]{1,3}\-([0-9]{2,3}\-[0-9]{2,3}|[0-9]{3,6}))");
+                                                //Regex newRegPhoneS = new Regex(@"^((8|\+7)[\-]?)?(\(?\d{3}\)?[\-]?)?[\d\-]{7,10}$");
+                                                ResponceCe = Encoding.GetEncoding(1251).GetString(Encoding.Convert(Encoding.UTF8, Encoding.GetEncoding(1251), Encoding.UTF8.GetBytes(ResponceCe)));
+                                                MatchCollection matchesPhoneSes = newRegPhoneSes.Matches(ResponceCe);
+
+                                                //Код вывода оригинальных значений полученных парсингом сайта. Работает не совсем корректно, потому что последнее значение не будет првильно сравнено и всегда будет выкинуто из перечисления даже если оно уникально.
+                                                int pm = 1;
+                                                for (int n = 0; n < (int)matchesPhoneSes.Count; n++)
+                                                {
+                                                    if (n != (int)matchesPhoneSes.Count - 2)
+                                                    {
+                                                        for (int zm = pm; zm < (int)matchesPhoneSes.Count; zm++)
+                                                        {
+                                                            if (matchesPhoneSes[n].Value == matchesPhoneSes[zm].Value)
+                                                            {
+                                                                break;
+                                                            }
+
+                                                            else
+                                                            {
+                                                                if (zm == (int)matchesPhoneSes.Count - 1)
+                                                                {
+                                                                    excelcells[l + 1, -3] = excelcells[l + 1, -3].Value + matchesPhoneSes[n].Value + "\n";
+                                                                }
+                                                                else { }
+                                                            }
+
+
+                                                        } pm++;
+                                                    }
+
+                                                    else
+                                                    {
+                                                        for (int klm = (int)matchesPhoneSes.Count - 1; klm < (int)matchesPhoneSes.Count; klm++)
+                                                        {
+                                                            if (matchesPhoneSes[n].Value == matchesPhoneSes[klm].Value)
+                                                            {
+                                                                excelcells[l + 1, -3] = excelcells[l + 1, -3].Value + matchesPhoneSes[n].Value + "\n";
+                                                                break;
+                                                            }
+
+                                                            else
+                                                            {
+                                                                for (int klkm = (int)matchesPhoneSes.Count - 2; klkm < (int)matchesPhoneSes.Count; klkm++)
+                                                                {
+                                                                    excelcells[l + 1, -3] = excelcells[l + 1, -3].Value + matchesPhoneSes[klkm].Value + "\n";
+                                                                }
+                                                            }
+                                                        }
+                                                    }
+                                                }
+
+                                            }
+                                            catch { }
+
+                                        } //h++; //Увеличение переменной на единицу для того чтобы не вносить значения в уже заполненную строку и начинать все с новой.
+                                    }
+                                    catch { /*j = matchess.Count + 1;*/ }
+                                }
+                            }
+                            catch { k = 101; }
+                        
+                        }
+                    
+                    }
+                }
+
+                catch (Exception ex)
+                {
+                    MessageBox.Show("Error: Could not read file from disk. Original error: " + ex.Message);
+                }
+            }
+
+            else
+            {
+                try
+                {
+                    DataTable dataTable = new DataTable();
+                    dataTable.Show();
+                    
+                }
+
+                catch (Exception ex)
+                {
+                    MessageBox.Show("Error: Could not read file from disk. Original error: " + ex.Message);
+                }
+            }
+        }
+        
+        private void textBox2_Product(object sender, EventArgs e)
+        {
+            string product = textBox2.Text;
+        }
+
+        public string productT()
+        {
+            return textBox2.Text;
+        }
+
+        private void textBox1_City(object sender, EventArgs e)
+        {
+            string city = textBox1.Text;
+        }
+
+        public string cityT()
+        {
+            return textBox1.Text;
+        }
+
+        public string enumerationOfOption() //Метод заменяет русское название города введенное в поле textBox1.Text на аналогичное но введенное латиницей. Метод возвращает названеи городов латиницец.
+        {
+            if (textBox1.Text != "")
+            {
+                string s = textBox1.Text;
+
+                switch (s)
+                {
+                    case "москва": s = "moscow"; break;
+                    case "абакан": s = "abakan"; break;
+                    case "альметьевск": s = "almetyevsk"; break;
+                    case "анадырь": s = "anadyr"; break;
+                    case "анапа": s = "anapa"; break;
+                    case "архангельск": s = "arkhangelsk"; break;
+                    case "астрахань": s = "astrakhan"; break;
+                    case "барнаул": s = "barnaul"; break;
+                    case "белгород": s = "belgorod"; break;
+                    case "беслан": s = "beslan"; break;
+                    case "бийск": s = "biysk"; break;
+                    case "биробиджан": s = "birobidzhan"; break;
+                    case "благовещенск": s = "blagoveshchensk"; break;
+                    case "бологое": s = "bologoye"; break;
+                    case "брянск": s = "bryansk"; break;
+                    case "великий новгород": s = "v_novgorod"; break;
+                    case "великий устюг": s = "v_ustyug"; break;
+                    case "владивосток": s = "vladivostok"; break;
+                    case "владикавказ": s = "vladikavkaz"; break;
+                    case "владимир": s = "vladimir"; break;
+                    case "волгоград": s = "volgograd"; break;
+                    case "вологда": s = "vologda"; break;
+                    case "воркута": s = "vorkuta"; break;
+                    case "воронеж": s = "voronezh"; break;
+                    case "гатчина": s = "gatchina"; break;
+                    case "гдов": s = "gdov"; break;
+                    case "геленджик": s = "gelendzhik"; break;
+                    case "горноалтайск": s = "gornoaltaysk"; break;
+                    case "грозный": s = "grozny"; break;
+                    case "гудермес": s = "gudermes"; break;
+                    case "гусь хрустальный": s = "guskhrustalny"; break;
+                    case "дзержинск": s = "dzerzhinsk"; break;
+                    case "дмитров": s = "dmitrov"; break;
+                    case "дубна": s = "dubna"; break;
+                    case "ейск": s = "yeysk"; break;
+                    case "екатеринбург": s = "yekaterinburg"; break;
+                    case "елабуга": s = "yelabuga"; break;
+                    case "елец": s = "yelets"; break;
+                    case "ессентуки": s = "yessentuki"; break;
+                    case "златоуст": s = "zlatoust"; break;
+                    case "иваново": s = "ivanovo"; break;
+                    case "ижевск": s = "izhevsk"; break;
+                    case "иркутск": s = "irkutsk"; break;
+                    case "йошкар-ола": s = "yoshkarola"; break;
+                    case "казань": s = "kazan"; break;
+                    case "калининград": s = "kaliningrad"; break;
+                    case "калуга": s = "kaluga"; break;
+                    case "кемерово": s = "kemerovo"; break;
+                    case "кисловодск": s = "kislovodsk"; break;
+                    case "комсомольск-на-амуре": s = "komsomolsk"; break;
+                    case "котлас": s = "kotlas"; break;
+                    case "краснодар": s = "krasnodar"; break;
+                    case "красноярск": s = "krasnoyarsk"; break;
+                    case "курган": s = "kurgan"; break;
+                    case "курск": s = "kursk"; break;
+                    case "кызыл": s = "kyzyl"; break;
+                    case "лениногорск": s = "leninogorsk"; break;
+                    case "ленск": s = "lensk"; break;
+                    case "липецк": s = "lipetsk"; break;
+                    case "луга": s = "luga"; break;
+                    case "любань": s = "lyuban"; break;
+                    case "люберцы": s = "lyubertsy"; break;
+                    case "магадан": s = "magadan"; break;
+                    case "майкоп": s = "maykop"; break;
+                    case "махачкала": s = "makhachkala"; break;
+                    case "миасс": s = "miass"; break;
+                    case "минеральные воды": s = "minvody"; break;
+                    case "мирный": s = "mirny"; break;
+                    case "мурманск": s = "murmansk"; break;
+                    case "муром": s = "murom"; break;
+                    case "мытищи": s = "mytishchi"; break;
+                    case "набережные челны": s = "nabchelny"; break;
+                    case "надым": s = "nadym"; break;
+                    case "нальчик": s = "nalchik"; break;
+                    case "назрань": s = "nazran"; break;
+                    case "нарьян-мар": s = "naryanmar"; break;
+                    case "находка": s = "nakhodka"; break;
+                    case "нижневартовск": s = "nizhnevartovsk"; break;
+                    case "нижнекамск": s = "nizhnekamsk"; break;
+                    case "нижний новгород": s = "n_novgorod"; break;
+                    case "нижний тагил": s = "ntagil"; break;
+                    case "новокузнецк": s = "novokuznetsk"; break;
+                    case "новосибирск": s = "novosibirsk"; break;
+                    case "новый уренгой": s = "novyurengoy"; break;
+                    case "норильск": s = "norilsk"; break;
+                    case "обнинск": s = "obninsk"; break;
+                    case "октябрьский": s = "oktyabrsky"; break;
+                    case "омск": s = "omsk"; break;
+                    case "оренбург": s = "orenburg"; break;
+                    case "орехово-зуево": s = "moscow"; break;
+                    case "орел": s = "oryol"; break;
+                    case "пенза": s = "penza"; break;
+                    case "пермь": s = "perm"; break;
+                    case "петрозаводск": s = "petrozavodsk"; break;
+                    case "петропавловск-камчатский": s = "p_kamchatskiy"; break;
+                    case "подольск": s = "podolsk"; break;
+                    case "псков": s = "pskov"; break;
+                    case "пятигорск": s = "pyatigorskl"; break;
+                    case "ростов-на-дону": s = "rostov"; break;
+                    case "рыбинск": s = "rybinsk"; break;
+                    case "рязань": s = "ryazan"; break;
+                    case "салехард": s = "salekhard"; break;
+                    case "самара": s = "samara"; break;
+                    case "санкт-петербург": s = "spb"; break;
+                    case "саранск": s = "saransk"; break;
+                    case "саратов": s = "saratov"; break;
+                    case "северодвинск": s = "severodvinsk"; break;
+                    case "смоленск": s = "smolensk"; break;
+                    case "соль-илецк": s = "soliletsk"; break;
+                    case "сочи": s = "sochi"; break;
+                    case "ставрополь": s = "stavropol"; break;
+                    case "сургут": s = "surgut"; break;
+                    case "сыктывкар": s = "syktyvkar"; break;
+                    case "тамбов": s = "tambov"; break;
+                    case "тверь": s = "tver"; break;
+                    case "тобольск": s = "tobolsk"; break;
+                    case "тольятти": s = "tolyatti"; break;
+                    case "томск": s = "tomsk"; break;
+                    case "туапсе": s = "tuapse"; break;
+                    case "тула": s = "tula"; break;
+                    case "тында": s = "tynda"; break;
+                    case "тюмень": s = "tyumen"; break;
+                    case "улан-уде": s = "ulanude"; break;
+                    case "ульяновск": s = "ulyanovsk"; break;
+                    case "уфа": s = "ufa"; break;
+                    case "хабаровск": s = "khabarovsk"; break;
+                    case "ханты-мансийск": s = "khantymansiysk"; break;
+                    case "чебаркуль": s = "сhebarkul"; break;
+                    case "чебоксары": s = "cheboksary"; break;
+                    case "челябинск": s = "chelyabinsk"; break;
+                    case "череповец": s = "cherepovets"; break;
+                    case "черкесск": s = "cherkessk"; break;
+                    case "чистополь": s = "chistopol"; break;
+                    case "чита": s = "chita"; break;
+                    case "шадринск": s = "shadrinsk"; break;
+                    case "шатура": s = "shatura"; break;
+                    case "шуя": s = "shuya"; break;
+                    case "элиста": s = "elista"; break;
+                    case "энгельс": s = "engels"; break;
+                    case "южно-сахалинск": s = "yuzhnosakhalinsk"; break;
+                    case "якутск": s = "yakutsk"; break;
+                    case "ярославль": s = "yaroslavl"; break;
+                    default: s = "moscow"; break;
+                }
+                return s;
+            }
+
+            else
+            {
+                string s = "moscow, abakan, almetyevsk, anadyr, anapa, arkhangelsk, astrakhan, barnaul, belgorod, beslan, biysk, birobidzhan, blagoveshchensk, bologoye, bryansk, v_novgorod, v_ustyug, vladivostok, vladikavkaz, vladimir, volgograd, vologda, vorkuta, voronezh, gatchina, gdov, gelendzhik, gornoaltaysk, grozny, gudermes, guskhrustalny, dzerzhinsk, dmitrov, dubna, yeysk, yekaterinburg, yelabuga, yelets, yessentuki, zlatoust, ivanovo, izhevsk, irkutsk, yoshkarola, kazan, kaliningrad, kaluga, kemerovo, kislovodsk, komsomolsk, kotlas, krasnodar, krasnoyarsk, kurgan, kursk, kyzyl, leninogorsk, lensk, lipetsk, luga, lyuban, lyubertsy, magadan, maykop, makhachkala, miass, minvody, mirny, murmansk, murom, mytishchi, nabchelny, nadym, nalchik, nazran, naryanmar, nakhodka, nizhnevartovsk, nizhnekamsk, n_novgorod, ntagil, novokuznetsk, novosibirsk, novyurengoy, norilsk, obninsk, oktyabrsky, omsk, orenburg, oryol, penza, perm, petrozavodsk, p_kamchatskiy, podolsk, pskov, pyatigorskl, rostov, rybinsk, ryazan, salekhard, samara, spb, saransk, saratov, severodvinsk, smolensk, soliletsk, sochi, stavropol, surgut, syktyvkar, tambov, tver, tobolsk, tolyatti, tomsk, tuapse, tula, tynda, tyumen, ulanude, ulyanovsk, ufa, khabarovsk, khantymansiysk, сhebarkul, cheboksary, chelyabinsk, cherepovets, cherkessk, chistopol, chita, shadrinsk, shatura, shuya, elista, engels, yuzhnosakhalinsk, yakutsk, yaroslavl";
+
+                return s;
+            }
+        }
+        
+        public int textBox3_NumberOfCompanies() //Строка которая принимает знаяение типа int для ввода количества необходимого перебора компаний на странице.
+        {
+            int numComPage;
+            
+            if (textBox3.Text == "") { numComPage = 30; } //Если в строке ничего не введено то значение переменной numComPage приславивается по умолчанию 30.
+            else { numComPage = Convert.ToInt32(textBox3.Text); }
+            
+            return numComPage;
+        }
+
+        public int textBox4_NumberOfPages() //Строка которая принимает знаяение типа int для ввода количества необходимого перебора страниц.
+        {
+            int numPage = 0, ki;
+            string cityProduct;
+
+            if (textBox4.Text == "")
+            {
+                for (ki = 0; ki < 100; ki++)
+                {
+                    try
+                    {
+                        cityProduct = "https://2gis.ru/" + matchesCity[v].Value + "/search/" + textBox2.Text + "/page/" + Convert.ToString(ki + 1) + "/tab/firms";
+                        System.Net.WebClient wc = new System.Net.WebClient();
+                        String Responcec = wc.DownloadString(Convert.ToString(cityProduct));
+                    }
+
+                    catch { numPage = ki; break; }
+                }
+            }
+                
+            else { numPage = Convert.ToInt32(textBox4.Text); }
+            
+            return numPage;
+        }
+
+        public void comboBox1_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            string selectedIndex = comboBox1.Text;
+        }
+
+        private void button1_Stop(object sender, EventArgs e)
+        {
+
+        }
+    }
+}
