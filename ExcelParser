@@ -1,0 +1,144 @@
+using System;
+using System.Collections.Generic;
+using System.ComponentModel;
+using System.Data;
+using System.Drawing;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using System.Windows.Forms;
+using System.IO;
+using Microsoft.Office.Interop.Excel;
+using Excel = Microsoft.Office.Interop.Excel;
+using System.Reflection;
+using System.Text.RegularExpressions;
+
+namespace EmailParser
+{
+    
+    public partial class ExcelParser : Form
+    {
+        
+        private Microsoft.Office.Interop.Excel.Application excelapp; //Определяем глобально основной обьект 'Excel.Application'.
+        private Microsoft.Office.Interop.Excel.Workbooks excelappworkbooks; //Определяем глобально основной обьект 'Excel.Workbooks'.
+        private Microsoft.Office.Interop.Excel.Workbook excelappworkbook; //Определяем глобально основной обьект 'Excel.Workbook'.
+        private Microsoft.Office.Interop.Excel.Sheets excelsheets; //Определяем глобально основной обьект 'Excel.Sheets'.
+        //private Microsoft.Office.Interop.Excel.Worksheets excelworksheets; //Определяем глобально основной обьект 'Excel.Worksheets'.
+        private Microsoft.Office.Interop.Excel.Worksheet excelworksheet; //Определяем глобально основной обьект 'Excel.Worksheet'.
+        private Microsoft.Office.Interop.Excel.Range excelcells; //Определяем глобально основной обьект 'Excel.Range'.
+
+        public ExcelParser()
+        {
+            InitializeComponent(); 
+        }
+
+        private void ExcelParser_Load(object sender, EventArgs e)
+        {
+            
+        }
+
+        private void Parsing_Click(object sender, EventArgs e)
+        {
+            Stream myStream = null;
+            OpenFileDialog openFileDialog1 = new OpenFileDialog();
+
+            openFileDialog1.InitialDirectory = "c:\\Рабочий стол";
+            openFileDialog1.Filter = "Excel files|*.xlsx;*.xls";
+            openFileDialog1.FilterIndex = 2;
+            openFileDialog1.RestoreDirectory = true;
+
+            if (openFileDialog1.ShowDialog() == DialogResult.OK)
+            {
+                try
+                {
+                    if ((myStream = openFileDialog1.OpenFile()) != null)
+                    {
+                        using (myStream)
+                        {
+                            string t1 = textBox1.Text; //Создаем переменную t1 типа string и присваиваем ей поле в которое мы вводим значение первой ячейки диапазона.
+                            string t2 = textBox2.Text; //Создаем переменную t2 типа string и присваиваем ей поле в которое мы вводим значение второй ячейки диапазона.
+                            int k = Convert.ToInt32(textBox3.Text); //Создаю переменную k типа int и присваиваем ей поле в которое мы вводим номер столбца в который будет помещены отобранные данные.
+                            int i, j, l = 1; //Создаем переменные типа int на уровне метода, чтобы к ним можно было доступица вне цикла for. И для переменной l присваиваем значение 1 для того чтобы вносить данные строго в каждую пустую ячейку в цикле вывода отобранных значений.
+                            char g = '@'; //Создание переменной типа char на уровне метода с занесением в нее значения.
+
+                            excelapp = new Microsoft.Office.Interop.Excel.Application();
+                            excelapp.Visible = true;
+                            excelappworkbooks = excelapp.Workbooks;
+                            excelappworkbook = excelapp.Workbooks.Open(openFileDialog1.FileName, Type.Missing, Type.Missing, Type.Missing, Type.Missing, Type.Missing, Type.Missing, Type.Missing, Type.Missing, Type.Missing, Type.Missing, Type.Missing, Type.Missing, Type.Missing, Type.Missing); //Открываем файл Excel выбранный пользователем с компьютера через проводним Microsoft Windows.
+                            excelsheets = excelappworkbook.Worksheets;
+                            excelworksheet = (Microsoft.Office.Interop.Excel.Worksheet)excelsheets.get_Item(1); //Получаем доступ и активируем лист №1 табилцы Excel для того чтобы работать с ее значениями и введенными в нее данными.
+
+                            excelcells = excelworksheet.get_Range(t1, t2); //Создаем диапазон на листе таблицы Excel на основании введенных данных пользователем ячеек.
+                            
+//Считывание данных с листа Excel в оперативную память копмьютера в создынный двумерный массив типа string:
+                            /*
+                            string[,] list = new string[excelcells.Rows.Count, excelcells.Columns.Count]; //Создание массива string[,] list с подсчетом его размера на основании введонных в программу угловых ячеек талицы.
+
+                            for (i = 0; i < (int)excelcells.Rows.Count; i++) //Пробегаемся по заранее подсчитанному количеству колонок на основании введенных данных.
+                            {
+                                for (j = 0; j < (int)excelcells.Columns.Count; j++) //Пробегаемся по заранее подсчитанному количеству столбцов на основании введенных данных.
+                                {
+                                    list[i, j] = Convert.ToString(excelcells.Value2[i + 1, j + 1]); //Заносим в каждую координату массива значение соответствующее данному положению ячейки на листе Excel согласно перебору.
+                                    //Проблема в том что массив list[i, j] имеет значение [колонки, столбци], а массив excelcells.Value2[i + 1, j + 1] имеет значение [столбци, колонки]. В общем все наоборот и изза этого не удается устанавливать любой диапазон для выбора данных а только равнозначный!!!
+                                    //Изза этого программа не работает полноценно и осталось исправить только эту проблему для завершения ExcelParser.cs.
+                                }
+                            }
+                            */
+//Внесение считанных данных с листа Excel в оперативную память копмьютера в создынный двумерный массив типа string в тот же лист но с изменением расположения данных на листе:
+
+                            for (i = 0; i < (int)excelcells.Rows.Count; i++) //Пробегаемся по заранее подсчитанному количеству колонок на основании введенных данных.
+                            {
+                                for (j = 0; j < (int)excelcells.Columns.Count; j++) //Пробегаемся по заранее подсчитанному количеству столбцов на основании введенных данных.
+                                {
+                                    
+//Проверяю значение каждой ячейки из файла Excel на наличие в данном значении за ранее выбранной переменной типа char. И внесение данного значения на лись Excel если в данном значении есть совпадение и найдет искомый символ типа char.                                   
+                                   
+                                    string s = Convert.ToString(excelcells.Value2[i + 1, j + 1]); //Вношу данные ячейки файла Excel в только что созданную переменную s типа string.
+                                    if (s != null)
+                                    {
+                                        char[] ch = s.ToCharArray(); //Создаю массив типа char и вношу в него отсортированную переменную s типа string.
+                                        foreach (char h in ch) //Делаю перебор массива char по каждому значению массива.
+                                        {
+                                            if (h == g) //Вношу в ячейки файла Excel в заданный столбец последовательно без пропусков диапазон даннх считанных с того же листа файла Excel и отобранных по определенному параметру.
+                                            {
+                                                Regex newReg = new Regex(@"([a-zA-Z0-9\-\.\w]+@[a-zA-Z0-9\-\.]+?\.[a-zA-Z]{2,6})");
+                                                MatchCollection matches = newReg.Matches(excelcells.Value2[i + 1, j + 1]);
+
+                                                for (int m = 0; m < matches.Count; m++)
+                                                {
+                                                    excelcells[l++, k] = Convert.ToString(matches[m].Value);
+                                                }
+                                                break; 
+                                            } 
+                                            else { }
+                                        }
+                                    }
+                                    else {}
+                                }
+                            }
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show("Error: Could not read file from disk. Original error: " + ex.Message);
+                }
+            }
+        }
+
+        public void NumberOfLines_TextChanged(object sender, EventArgs e)
+        {
+            string numberOfLines = textBox1.Text;
+        }
+
+        public void NumberOfColumns_TextChanged(object sender, EventArgs e)
+        {
+            string numberOfColumns = textBox2.Text;
+        }
+
+        private void OutputСolumnNumber_TextChanged(object sender, EventArgs e)
+        {
+            string outputColNum = textBox3.Text;
+        }
+    }
+}
