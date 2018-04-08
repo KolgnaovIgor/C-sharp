@@ -1,3 +1,5 @@
+//A program that collects data from certain Internet resources about companies.
+
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
